@@ -1,6 +1,10 @@
 package activity;
 
+import android.app.Activity;
 import android.app.Fragment;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.Signature;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.FragmentManager;
@@ -10,17 +14,25 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Base64;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.BaseAdapter;
 import android.widget.HeaderViewListAdapter;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 
+import com.app.techsmartsolutions.R;
+
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
-import mobilemarket.com.techsmartsolutions.R;
+import fragment.LoginBaseFragment;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -28,27 +40,37 @@ public class MainActivity extends AppCompatActivity {
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mDrawerToggle;
     private Toolbar toolbar;
-    private List<String> menuItems ;
+    private List<String> mMenuItems = new ArrayList<>();
+    private RelativeLayout mHeaderLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        getMenuItems();
         setSupportActionBar(toolbar);
         initToolbar();
         setupDrawerLayout();
-        getMenuItems();
-
+       // mNavigationView.inflateHeaderView(R.layout.header);
+        final LoginBaseFragment loginBaseFragment =  LoginBaseFragment.createInstance();
+        View headerview = mNavigationView.getHeaderView(0);
+        mHeaderLayout = (RelativeLayout)headerview.findViewById(R.id.lyt_headeview);
+        mHeaderLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //loadFragment(loginBaseFragment);
+            }
+        });
+        Log.d("MainActivity", ""+printKeyHash(this));
     }
 
     private void getMenuItems() {
-        menuItems = new ArrayList<>();
-        menuItems.add("Products");
-        menuItems.add("Post Products");
-        menuItems.add("Sale");
-        menuItems.add("My products");
-        menuItems.add("My Favorites");
+        mMenuItems.add("Products");
+        mMenuItems.add("Post Products");
+        mMenuItems.add("Sale");
+        mMenuItems.add("My products");
+        mMenuItems.add("My Favorites");
     }
 
     private void initToolbar() {
@@ -64,14 +86,14 @@ public class MainActivity extends AppCompatActivity {
 
     private void setupDrawerLayout() {
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-
         mNavigationView = (NavigationView) findViewById(R.id.navigation_view);
         addItemsRunTime(mNavigationView);
 
         mNavigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(MenuItem menuItem) {
-               // menuItem.setChecked(true);
+                if(menuItem.isChecked()) menuItem.setChecked(false);
+                else menuItem.setChecked(true);
                 mDrawerLayout.closeDrawers();
                 return true;
             }
@@ -80,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
         ActionBarDrawerToggle mDrawerToggle = new ActionBarDrawerToggle(this,mDrawerLayout, toolbar,R.string.app_name,
                 R.string.app_name);
 
-        mDrawerLayout.setDrawerListener(mDrawerToggle);
+        mDrawerLayout.addDrawerListener(mDrawerToggle);
 
         mDrawerToggle.syncState();
     }
@@ -108,8 +130,8 @@ public class MainActivity extends AppCompatActivity {
 
         //adding items run time
         final Menu menu = navigationView.getMenu();
-        for (int i = 1; i <= 3; i++) {
-            menu.add("Runtime item "+ i);
+        for (String menuItem : mMenuItems) {
+            menu.add(menuItem);
         }
 
         // refreshing navigation drawer adapter
@@ -208,11 +230,49 @@ public class MainActivity extends AppCompatActivity {
         fragmentManager.beginTransaction().replace(R.id.containerView, null).commit();
 
         // Highlight the selected item has been done by NavigationView
-        menuItem.setChecked(true);
+       //menuItem.setChecked(true);
         // Set action bar title
         setTitle(menuItem.getTitle());
         // Close the navigation drawer
 
+    }
+
+    public static String printKeyHash(Activity context) {
+        PackageInfo packageInfo;
+        String key = null;
+        try {
+            //getting application package name, as defined in manifest
+            String packageName = context.getApplicationContext().getPackageName();
+
+            //Retriving package info
+            packageInfo = context.getPackageManager().getPackageInfo(packageName,
+                    PackageManager.GET_SIGNATURES);
+
+            Log.e("Package Name=", context.getApplicationContext().getPackageName());
+
+            for (Signature signature : packageInfo.signatures) {
+                MessageDigest md = MessageDigest.getInstance("SHA");
+                md.update(signature.toByteArray());
+                key = new String(Base64.encode(md.digest(), 0));
+
+                // String key = new String(Base64.encodeBytes(md.digest()));
+                Log.e("Key Hash=", key);
+            }
+        } catch (PackageManager.NameNotFoundException e1) {
+            Log.e("Name not found", e1.toString());
+        }
+        catch (NoSuchAlgorithmException e) {
+            Log.e("No such an algorithm", e.toString());
+        } catch (Exception e) {
+            Log.e("Exception", e.toString());
+        }
+
+        return key;
+    }
+
+    private void loadFragment(android.support.v4.app.Fragment fragment){
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        fragmentManager.beginTransaction().replace(R.id.containerView, fragment).commit();
     }
 
 }
