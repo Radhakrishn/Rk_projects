@@ -59,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
         mHeaderLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //loadFragment(loginBaseFragment);
+                loadFragment(loginBaseFragment);
             }
         });
         Log.d("MainActivity", ""+printKeyHash(this));
@@ -270,9 +270,13 @@ public class MainActivity extends AppCompatActivity {
         return key;
     }
 
-    private void loadFragment(android.support.v4.app.Fragment fragment){
+    public void loadFragment(android.support.v4.app.Fragment fragment){
         FragmentManager fragmentManager = getSupportFragmentManager();
-        fragmentManager.beginTransaction().replace(R.id.containerView, fragment).commit();
+        fragmentManager.beginTransaction().replace(R.id.containerView, fragment).commitAllowingStateLoss();
     }
 
+    public void loadFragmentWithckStack(android.support.v4.app.Fragment fragment){
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        fragmentManager.beginTransaction().replace(R.id.containerView, fragment).addToBackStack(fragment.getClass().getSimpleName()).commitAllowingStateLoss();
+    }
 }

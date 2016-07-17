@@ -9,6 +9,7 @@ import android.support.v4.app.FragmentActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 
 import com.app.techsmartsolutions.R;
 import com.facebook.CallbackManager;
@@ -25,6 +26,8 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 
+import activity.MainActivity;
+
 /**
  * Created by user on 6/2/2016.
  */
@@ -35,6 +38,7 @@ public class LoginBaseFragment extends Fragment implements View.OnClickListener{
     private CallbackManager callbackManager;
     private GoogleApiClient mGoogleApiClient;
     private static final int RC_SIGN_IN = 9001;
+    private Button mSinginBtn, mSignUpBtn;
 
     public static LoginBaseFragment createInstance(){
         LoginBaseFragment loginBaseFragment =  new LoginBaseFragment();
@@ -46,15 +50,20 @@ public class LoginBaseFragment extends Fragment implements View.OnClickListener{
         View view = inflater.inflate(R.layout.lyt_loginbase_fragment, container, false);
         initViews(view);
         fbRegisterCallBack();
-
         return view;
     }
 
     private void initViews(View view) {
         fbLoginButton = (LoginButton) view.findViewById(R.id.fb_login_button);
         googleLoginBtn = (SignInButton) view.findViewById(R.id.google_sign_in_button);
+        mSignUpBtn = (Button) view.findViewById(R.id.btn_sign_up);
+        mSinginBtn = (Button) view.findViewById(R.id.btn_sign_in);
         googleLoginBtn.setOnClickListener(this);
+        mSignUpBtn.setOnClickListener(this);
+        mSinginBtn.setOnClickListener(this );
+        setUpGoogleApiCLient();
     }
+
 
     private void fbRegisterCallBack() {
         fbLoginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
@@ -79,13 +88,13 @@ public class LoginBaseFragment extends Fragment implements View.OnClickListener{
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        FacebookSdk.sdkInitialize(getActivity().getApplicationContext());
+        callbackManager = CallbackManager.Factory.create();
     }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        FacebookSdk.sdkInitialize(getActivity().getApplicationContext());
-        callbackManager = CallbackManager.Factory.create();
     }
 
     @Override
@@ -95,10 +104,22 @@ public class LoginBaseFragment extends Fragment implements View.OnClickListener{
 
     @Override
     public void onClick(View v) {
-        if(v.getId() ==  R.id.google_sign_in_button){
-            signIn();
-        }
+        switch (v.getId()){
+            case R.id.google_sign_in_button:
+                signIn();
+                break;
+            case R.id.btn_sign_up:
+                ((MainActivity)getActivity()).loadFragmentWithckStack(SignupSignin.createInstance(true));
+                break;
+            case R.id.btn_sign_in:
+                ((MainActivity)getActivity()).loadFragmentWithckStack(SignupSignin.createInstance(false));
+                break;
 
+        }
+    }
+
+    private void loadSignup() {
+        ((MainActivity)getActivity()).loadFragmentWithckStack(SignupSignin.createInstance(true));
     }
 
     private void setUpGoogleApiCLient(){
@@ -119,15 +140,11 @@ public class LoginBaseFragment extends Fragment implements View.OnClickListener{
         googleLoginBtn.setScopes(gso.getScopeArray());
     }
 
-    // [START signIn]
     private void signIn() {
-        setUpGoogleApiCLient();
         Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
         startActivityForResult(signInIntent, RC_SIGN_IN);
     }
-    // [END signIn]
 
-    // [START signOut]
     private void signOut() {
         Auth.GoogleSignInApi.signOut(mGoogleApiClient).setResultCallback(
                 new ResultCallback<Status>() {
@@ -137,5 +154,4 @@ public class LoginBaseFragment extends Fragment implements View.OnClickListener{
                     }
                 });
     }
-    // [END signOut]
 }
