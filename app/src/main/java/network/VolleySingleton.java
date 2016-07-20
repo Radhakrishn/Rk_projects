@@ -4,30 +4,32 @@ package network;
 import android.content.Context;
 
 import com.android.volley.RequestQueue;
-import com.android.volley.toolbox.Volley;
+import com.android.volley.toolbox.HurlStack;
 
-public class CJRVolley {
+import utility.ImageCacheManager;
+
+public class VolleySingleton {
 	
 	private static RequestQueue mRequestQueue;
 	private static RequestQueue mImageRequestQueue;
 	
 	
-	private CJRVolley() {}
+	private VolleySingleton() {}
 	
 	/**
-	 * initialize Volley
+	 * initialize VolleySingleton
 	 */
 	public static void init(Context context) {
-		mRequestQueue = Volley.newRequestQueue(context);
-		mImageRequestQueue = Volley.newRequestQueue(context);
-		//ImageCacheManager.INSTANCE.initImageCache();
+		mRequestQueue = com.android.volley.toolbox.Volley.newRequestQueue(context, new HurlStack());
+		mImageRequestQueue = com.android.volley.toolbox.Volley.newRequestQueue(context);
+		ImageCacheManager.INSTANCE.initImageCache();
 	}
 	
 	public static RequestQueue getRequestQueue(Context context) {
 		if (mRequestQueue != null) {
 			return mRequestQueue;
 		} else {
-			return mRequestQueue = Volley.newRequestQueue(context);
+			return mRequestQueue = com.android.volley.toolbox.Volley.newRequestQueue(context);
 		}
 	}
 	

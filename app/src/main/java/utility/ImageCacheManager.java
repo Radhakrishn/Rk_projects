@@ -3,7 +3,7 @@ package utility;
 
 import com.android.volley.toolbox.ImageLoader;
 
-import network.CJRVolley;
+import network.VolleySingleton;
 
 
 public enum ImageCacheManager {
@@ -22,7 +22,7 @@ public enum ImageCacheManager {
 
 		//Log.i("Cache size:", "Cache size" + getCacheSize());
 
-		mImageLoader = new ImageLoader(CJRVolley.getImageRequestQueue(), mBitmapMemoryCache);
+		mImageLoader = new ImageLoader(VolleySingleton.getImageRequestQueue(), mBitmapMemoryCache);
 	}
 
 	public ImageLoader getImageLoader() {
