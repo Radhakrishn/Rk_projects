@@ -32,6 +32,7 @@ public class ApiGsonRequest extends Request<IJRDataModel> {
     public enum MethodType {
         GET, POST,PUT,DEL
     }
+
     /** Charset for request. */
     private static final String PROTOCOL_CHARSET = "utf-8";
 
