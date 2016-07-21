@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "150878500679",
+    "project_id": "techsmart-1379"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:150878500679:android:96b1b5049d4def22",
+        "android_client_info": {
+          "package_name": "com.app.techsmartsolutions"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "150878500679-4lukc3otnc0c0qrbhilesab0tuokj4u4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.app.techsmartsolutions",
+            "certificate_hash": "3452C93070C45AD2959BDA40B2A1EAE407EC0DF2"
+          }
+        },
+        {
+          "client_id": "150878500679-fu1hfgmduhm1738jieogeesk4847tmgu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAhyXeXU2QnkeNThNP4xUhZvVp5xO_xSNc"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

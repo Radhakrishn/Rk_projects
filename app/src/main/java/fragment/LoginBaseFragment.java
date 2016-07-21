@@ -5,7 +5,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,7 +19,9 @@ import com.facebook.FacebookSdk;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -31,7 +33,7 @@ import activity.MainActivity;
 /**
  * Created by user on 6/2/2016.
  */
-public class LoginBaseFragment extends Fragment implements View.OnClickListener{
+public class LoginBaseFragment extends Fragment implements View.OnClickListener {
 
     private LoginButton fbLoginButton;
     private SignInButton googleLoginBtn;
@@ -39,11 +41,12 @@ public class LoginBaseFragment extends Fragment implements View.OnClickListener{
     private GoogleApiClient mGoogleApiClient;
     private static final int RC_SIGN_IN = 9001;
     private Button mSinginBtn, mSignUpBtn;
-
-    public static LoginBaseFragment createInstance(){
-        LoginBaseFragment loginBaseFragment =  new LoginBaseFragment();
+    private static final String TAG = "LoginBaseFragment";
+    public static LoginBaseFragment createInstance() {
+        LoginBaseFragment loginBaseFragment = new LoginBaseFragment();
         return loginBaseFragment;
     }
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -60,8 +63,9 @@ public class LoginBaseFragment extends Fragment implements View.OnClickListener{
         mSinginBtn = (Button) view.findViewById(R.id.btn_sign_in);
         googleLoginBtn.setOnClickListener(this);
         mSignUpBtn.setOnClickListener(this);
-        mSinginBtn.setOnClickListener(this );
-        setUpGoogleApiCLient();
+        mSinginBtn.setOnClickListener(this);
+        if (mGoogleApiClient == null)
+            setUpGoogleApiCLient();
     }
 
 
@@ -69,7 +73,7 @@ public class LoginBaseFragment extends Fragment implements View.OnClickListener{
         fbLoginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
             @Override
             public void onSuccess(LoginResult loginResult) {
-
+                Log.d(TAG,"On success"+loginResult.getAccessToken());
             }
 
             @Override
@@ -100,35 +104,39 @@ public class LoginBaseFragment extends Fragment implements View.OnClickListener{
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         callbackManager.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == RC_SIGN_IN) {
+            GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
+            handleSignInResult(result);
+        }
     }
 
     @Override
     public void onClick(View v) {
-        switch (v.getId()){
+        switch (v.getId()) {
             case R.id.google_sign_in_button:
                 signIn();
                 break;
             case R.id.btn_sign_up:
-                ((MainActivity)getActivity()).loadFragmentWithckStack(SignupSignin.createInstance(true));
+                ((MainActivity) getActivity()).loadFragmentWithckStack(SignupSignin.createInstance(true));
                 break;
             case R.id.btn_sign_in:
-                ((MainActivity)getActivity()).loadFragmentWithckStack(SignupSignin.createInstance(false));
+                ((MainActivity) getActivity()).loadFragmentWithckStack(SignupSignin.createInstance(false));
                 break;
 
         }
     }
 
     private void loadSignup() {
-        ((MainActivity)getActivity()).loadFragmentWithckStack(SignupSignin.createInstance(true));
+        ((MainActivity) getActivity()).loadFragmentWithckStack(SignupSignin.createInstance(true));
     }
 
-    private void setUpGoogleApiCLient(){
+    private void setUpGoogleApiCLient() {
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestEmail()
                 .build();
 
         mGoogleApiClient = new GoogleApiClient.Builder(getActivity())
-                .enableAutoManage((FragmentActivity) getActivity() /* FragmentActivity */, new GoogleApiClient.OnConnectionFailedListener() {
+                .enableAutoManage(getActivity(), new GoogleApiClient.OnConnectionFailedListener() {
                     @Override
                     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
@@ -154,4 +162,22 @@ public class LoginBaseFragment extends Fragment implements View.OnClickListener{
                     }
                 });
     }
+
+    private void handleSignInResult(GoogleSignInResult result) {
+        Log.d(TAG, "handleSignInResult:" + result.isSuccess());
+        if (result.isSuccess()) {
+            // Signed in successfully, show authenticated UI.
+            GoogleSignInAccount acct = result.getSignInAccount();
+            //mStatusTextView.setText(getString(R.string.signed_in_fmt, acct.getDisplayName()));
+            Log.d(TAG,"Name: "+acct.getDisplayName());
+            updateUI(true);
+        } else {
+            // Signed out, show unauthenticated UI.
+            updateUI(false);
+        }
+    }
+
+    private void updateUI(boolean b) {
+    }
+
 }
