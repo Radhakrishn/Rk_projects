@@ -60,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 loadFragment(loginBaseFragment);
+                closeNavDrawer();
             }
         });
         Log.d("MainActivity", ""+printKeyHash(this));
@@ -272,6 +273,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void loadFragment(android.support.v4.app.Fragment fragment){
         FragmentManager fragmentManager = getSupportFragmentManager();
+        if(!fragment.isAdded())
         fragmentManager.beginTransaction().replace(R.id.containerView, fragment).commitAllowingStateLoss();
     }
 
