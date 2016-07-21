@@ -15,7 +15,8 @@ import com.google.gson.Gson;
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
 
-import model.IJRDataModel;
+import utility.IJRDataModel;
+
 
 public class ApiGsonRequest extends Request<IJRDataModel> {
 
