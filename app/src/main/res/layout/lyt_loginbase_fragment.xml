@@ -17,7 +17,7 @@
         android:id="@+id/btn_sign_up"
         android:layout_marginTop="@dimen/dp_10"
         android:background="@drawable/gradient_btn"
-        android:textColor="@color/white"
+        android:textColor="@color/black"
         android:text="@string/sign_up"/>
     <Button
         android:layout_width="match_parent"
