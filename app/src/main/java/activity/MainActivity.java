@@ -93,8 +93,7 @@ public class MainActivity extends AppCompatActivity {
         mNavigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(MenuItem menuItem) {
-                if(menuItem.isChecked()) menuItem.setChecked(false);
-                else menuItem.setChecked(true);
+                menuItem.setChecked(true);
                 mDrawerLayout.closeDrawers();
                 return true;
             }
@@ -131,10 +130,12 @@ public class MainActivity extends AppCompatActivity {
 
         //adding items run time
         final Menu menu = navigationView.getMenu();
+        int menuCount = 0;
         for (String menuItem : mMenuItems) {
-            menu.add(menuItem);
+            menuCount ++;
+            menu.add(111,menuCount,Menu.NONE,menuItem);
         }
-
+        menu.setGroupCheckable(111,true,true);
         // refreshing navigation drawer adapter
         for (int i = 0, count = mNavigationView.getChildCount(); i < count; i++) {
             final View child = mNavigationView.getChildAt(i);

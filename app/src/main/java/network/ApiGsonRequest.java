@@ -32,6 +32,7 @@ public class ApiGsonRequest extends Request<IJRDataModel> {
     public enum MethodType {
         GET, POST,PUT,DEL
     }
+
     /** Charset for request. */
     private static final String PROTOCOL_CHARSET = "utf-8";
 
@@ -52,7 +53,6 @@ public class ApiGsonRequest extends Request<IJRDataModel> {
 
     public ApiGsonRequest(MethodType methodType, String url, Listener<IJRDataModel> listener, ErrorListener errorListener, IJRDataModel model, Map<String, String> headers) {
         super(getVolleyMethodType(methodType), url, errorListener);
-        System.out.println("---------ApiGsonRequest-------------");
         mListener = listener;
         mDataModel = model;
         mGson = new Gson();
