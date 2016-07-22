@@ -25,7 +25,7 @@ public class ApiGsonRequest extends Request<IJRDataModel> {
     private final Gson mGson;
     private Map<String, String> mHeaders;
     private String TAG = ApiGsonRequest.class.getName();
-    public static final int MY_SOCKET_TIMEOUT_MS = 60000;
+    public static final int MY_SOCKET_TIMEOUT_MS = 30000;
     private String mUrl;
     private String mRequestBody;
 
