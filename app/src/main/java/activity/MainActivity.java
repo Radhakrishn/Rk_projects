@@ -1,12 +1,12 @@
 package activity;
 
 import android.app.Activity;
-import android.app.Fragment;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import fragment.LoginBaseFragment;
+import fragment.PostProductFragment;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -94,6 +95,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onNavigationItemSelected(MenuItem menuItem) {
                 menuItem.setChecked(true);
+                selectDrawerItem(menuItem);
                 mDrawerLayout.closeDrawers();
                 return true;
             }
@@ -207,29 +209,26 @@ public class MainActivity extends AppCompatActivity {
         // Create a new fragment and specify the fragment to show based on nav item clicked
         Fragment fragment = null;
         Class fragmentClass;
-       /* switch(menuItem.getItemId()) {
-            case R.id.nav_first_fragment:
-                fragmentClass = FirstFragment.class;
+        switch(menuItem.getItemId()) {
+            case 1:
+                fragmentClass = PostProductFragment.class;
                 break;
-            case R.id.nav_second_fragment:
-                fragmentClass = SecondFragment.class;
+            case 2:
+                fragmentClass = PostProductFragment.class;
                 break;
-            case R.id.nav_third_fragment:
-                fragmentClass = ThirdFragment.class;
+            case 3:
+                fragmentClass = PostProductFragment.class;
                 break;
             default:
-                fragmentClass = FirstFragment.class;
+                fragmentClass = PostProductFragment.class;
         }
 
         try {
             fragment = (Fragment) fragmentClass.newInstance();
         } catch (Exception e) {
             e.printStackTrace();
-        }*/
-
-        // Insert the fragment by replacing any existing fragment
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        fragmentManager.beginTransaction().replace(R.id.containerView, null).commit();
+        }
+        loadFragment(fragment);
 
         // Highlight the selected item has been done by NavigationView
        //menuItem.setChecked(true);
