@@ -33,6 +33,7 @@ import java.util.List;
 
 import fragment.LoginBaseFragment;
 import fragment.PostProductFragment;
+import fragment.ProductsFragment;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -211,7 +212,7 @@ public class MainActivity extends AppCompatActivity {
         Class fragmentClass;
         switch(menuItem.getItemId()) {
             case 1:
-                fragmentClass = PostProductFragment.class;
+                fragmentClass = ProductsFragment.class;
                 break;
             case 2:
                 fragmentClass = PostProductFragment.class;
