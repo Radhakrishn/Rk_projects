@@ -1,5 +1,6 @@
 package fragment;
 
+import android.app.ProgressDialog;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
@@ -13,66 +14,165 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.Toast;
 
+import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.app.techsmartsolutions.R;
+import com.google.gson.JsonObject;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Method;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import adapters.CategoryAdapter;
+import adapters.SubCategoryAdapter;
+import model.CategoriesListResponse;
+import model.CategoriesResponse;
+import model.SubCategoriesListResponse;
+import model.SubCategoriesResponse;
+import model.SubCategoryRequest;
+import network.ApiGsonRequest;
+import network.VolleySingleton;
 import okhttp3.MediaType;
-import okhttp3.MultipartBody;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
 import okhttp3.RequestBody;
-import okhttp3.Response;
+import okio.BufferedSink;
+import retrofit.RetrofitClient;
+import retrofit.RetrofitInterface;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import utility.NetworkUtility;
 
 /**
  * Created by user on 7/24/2016.
  */
 public class PostProductFragment extends Fragment implements AdapterView.OnItemSelectedListener {
+
     private static final String TAG = "PostProductFragment";
     private EditText productName;
     private EditText productDescName;
-    private List<String> mCategoryList;
-    private List<String> mSubCategoryList;
+    private List<CategoriesListResponse> mCategoryList;
+    private List<SubCategoriesListResponse> mSubCategoryList;
     private Spinner categorySpinner;
     private Spinner subCategoSpinner;
+    RetrofitInterface apiService;
+
+    ProgressDialog mProgress;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_post_product, container, false);
-        initViews(view);
-        return view;
-    }
-
-    private void initViews(View view) {
+        apiService = RetrofitClient.getClient().create(RetrofitInterface.class);
         categorySpinner = (Spinner) view.findViewById(R.id.spinner_category);
         subCategoSpinner = (Spinner) view.findViewById(R.id.spinner_subcategory);
         productName = (EditText) view.findViewById(R.id.edit_productname);
         productDescName = (EditText) view.findViewById(R.id.edit_product_desc);
         categorySpinner.setOnItemSelectedListener(this);
         subCategoSpinner.setOnItemSelectedListener(this);
+        mProgress = new ProgressDialog(getContext());
+        if(NetworkUtility.isNetworkAvailable(getActivity())) {
+            getCategories();
+        }else{
+
+        }
+
+        categorySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if(NetworkUtility.isNetworkAvailable(getActivity())) {
+                    getSubCategories(mCategoryList.get(position).getId());
+                }else{
+                    Toast.makeText(getActivity(),getString(R.string.network_unavailable),Toast.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+        return view;
     }
 
-    private void showCategoty() {
-        mCategoryList = new ArrayList<>();
-        ArrayAdapter<String> categoryArrayAdapter = new ArrayAdapter<String>(getContext(), android.R.layout.simple_spinner_item, mCategoryList);
-        categoryArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        categorySpinner.setAdapter(categoryArrayAdapter);
+    private  void getSubCategories(String mCatId) {
+        SubCategoryRequest mSubCategoryRequest = new SubCategoryRequest("1",mCatId);
+
+        JsonObject json = new JsonObject();
+        json.addProperty("pg", "1");
+        json.addProperty("search_cat_id",mCatId);
+
+//        FooResponse response = foo.postRawJson(in);
+
+
+        Call<SubCategoriesResponse> call = apiService.getSubCategories(json);
+        Log.i("call",""+json);
+        call.enqueue(new Callback<SubCategoriesResponse>() {
+            @Override
+            public void onResponse(Call<SubCategoriesResponse> call, Response<SubCategoriesResponse> response) {
+//                mProgress.hide();
+                mSubCategoryList= response.body().getmSubCategoriesList();
+                Log.d(TAG, "Number of movies received sub: " +mSubCategoryList.size());
+                showSubCategory(mSubCategoryList);
+//                getSubCategories();
+            }
+
+            @Override
+            public void onFailure(Call<SubCategoriesResponse>call, Throwable t) {
+                // Log error here since request failed
+                Log.e(TAG, t.toString());
+                mProgress.hide();
+            }
+        });
+
+    }
+    private void getCategories() {
+        mProgress.show();
+        Call<CategoriesResponse> call = apiService.getCategories();
+        call.enqueue(new Callback<CategoriesResponse>() {
+            @Override
+            public void onResponse(Call<CategoriesResponse>call, Response<CategoriesResponse> response) {
+                mProgress.hide();
+                mCategoryList= response.body().getmCategoriesList();
+                Log.d(TAG, "Number of movies received: " + mCategoryList.size());
+                showCategory(mCategoryList);
+//                getSubCategories();
+            }
+
+            @Override
+            public void onFailure(Call<CategoriesResponse>call, Throwable t) {
+                // Log error here since request failed
+                Log.e(TAG, t.toString());
+                mProgress.hide();
+            }
+        });
+    }
+    private void showCategory(List<CategoriesListResponse> mCategoryList) {
+//        mCategoryList = new ArrayList<>();
+        CategoryAdapter mCategoryAdapter = new CategoryAdapter(getContext(), mCategoryList);
+        categorySpinner.setAdapter(mCategoryAdapter);
 
     }
 
-    private void showSubCategory() {
-        mSubCategoryList = new ArrayList<>();
-        ArrayAdapter<String> categoryArrayAdapter = new ArrayAdapter<String>(getContext(), android.R.layout.simple_spinner_item, mSubCategoryList);
+    private void showSubCategory(List<SubCategoriesListResponse> mSubCategoryList) {
+        SubCategoryAdapter mSubCategoryAdapter = new SubCategoryAdapter(getContext(), mSubCategoryList);
+        subCategoSpinner.setAdapter(mSubCategoryAdapter);
 
     }
 
@@ -113,11 +213,11 @@ public class PostProductFragment extends Fragment implements AdapterView.OnItemS
         return null;
     }
 
-    /**
+  /*  *//**
      * Upload Image
      * @param sourceImageFile
      * @return
-     */
+     *//*
     public static JSONObject uploadImage(String upload_url, List<String> sourceImageFile) {
 
         try {
@@ -151,7 +251,7 @@ public class PostProductFragment extends Fragment implements AdapterView.OnItemS
             Log.e(TAG, "Other Error: " + e.getLocalizedMessage());
         }
         return null;
-    }
+    }*/
 }
 
 
