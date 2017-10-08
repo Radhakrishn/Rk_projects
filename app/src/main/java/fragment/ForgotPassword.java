@@ -4,20 +4,30 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.AppCompatButton;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.app.techsmartsolutions.R;
+import com.google.gson.JsonObject;
 
 import java.util.HashMap;
 
+import activity.MainActivity;
 import model.ForgotPasswordResponse;
+import model.SignUpResponse;
 import network.ApiGsonRequest;
 import network.VolleySingleton;
+import retrofit.RetrofitClient;
+import retrofit.RetrofitInterface;
+import retrofit2.Call;
+import retrofit2.Callback;
 import utility.Constants;
 import utility.DialogUtility;
 import utility.IJRDataModel;
@@ -29,6 +39,9 @@ import utility.Utils;
  * Created by radhakrishna on 22/7/16.
  */
 public class ForgotPassword extends Fragment {
+
+    RetrofitInterface apiService;
+    EditText mEmailEdit;
 
     public static ForgotPassword createInstance(){
         ForgotPassword forgotPassword = new ForgotPassword();
@@ -43,40 +56,43 @@ public class ForgotPassword extends Fragment {
     }
 
     private void initViews(View view) {
-         final EditText editText = (EditText) view.findViewById(R.id.input_forgot_email);
+        apiService = RetrofitClient.getClient().create(RetrofitInterface.class);
+        mEmailEdit = (EditText) view.findViewById(R.id.input_forgot_email);
         AppCompatButton sendButton = (AppCompatButton) view.findViewById(R.id.btn_send);
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String editEmail = editText.getText().toString().trim();
-                if(Utils.isValidEmail(editEmail) && NetworkUtility.isNetworkAvailable(getActivity())){
-                    HashMap<String,String> stringMap = new HashMap();
-                    stringMap.put("email",editEmail);
-                    String url = Constants.BASE_URL + "user/forget";
-                    DialogUtility.showProgressDialog(getContext(),true);
-                    VolleySingleton.getRequestQueue(getContext()).add(new ApiGsonRequest(ApiGsonRequest.MethodType.POST,url,successListener,errorListener,new ForgotPasswordResponse(),null, Utils.getPostDataString(stringMap)));
+                if(!TextUtils.isEmpty(mEmailEdit.getText().toString()) && NetworkUtility.isNetworkAvailable(getActivity())) {
+                    forgotPasswordRequest();
+                }else{
+                    Toast.makeText(getActivity(),"Error. Please try again", Toast.LENGTH_SHORT).show();
                 }
             }
         });
     }
+    private void forgotPasswordRequest() {
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("email",mEmailEdit.getText().toString());
+        Log.i("call",""+jsonObject);
+        Call<ForgotPasswordResponse> call = apiService.forgotPassword(jsonObject);
 
-    Response.Listener<IJRDataModel> successListener = new Response.Listener<IJRDataModel>() {
-        @Override
-        public void onResponse(IJRDataModel response) {
-            DialogUtility.cancelProgressDialog();
-            if(response instanceof ForgotPasswordResponse){
-                ForgotPasswordResponse forgotPasswordResponse = (ForgotPasswordResponse)response;
-                Logger.d("RESPONSE ",">>"+forgotPasswordResponse.getDescription());
+        call.enqueue(new Callback<ForgotPasswordResponse>() {
+            @Override
+            public void onResponse(Call<ForgotPasswordResponse> call, retrofit2.Response<ForgotPasswordResponse> response) {
+                Log.i("Forgot Password", response.body().getDescription());
+                if(response.body().getErrorCode().equals("E05")) {
+                    ((MainActivity) getActivity()).loadFragmentWithckStack(SignupSignin.createInstance(false));
+                }else{
+                    Toast.makeText(getActivity(),"Error. Please try again", Toast.LENGTH_SHORT).show();
+                }
             }
 
-        }
-    };
+            @Override
+            public void onFailure(Call<ForgotPasswordResponse> call, Throwable t) {
+                Toast.makeText(getActivity(),"Error. Please try again", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
 
-    Response.ErrorListener errorListener = new Response.ErrorListener() {
-        @Override
-        public void onErrorResponse(VolleyError error) {
-            DialogUtility.cancelProgressDialog();
-        }
 
-    };
 }
